@@ -20,7 +20,7 @@
    <string>Robot Monitor</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="layoutWidget">
+   <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -341,7 +341,7 @@
        <item>
         <widget class="QGroupBox" name="groupBox_mouvments">
          <property name="title">
-          <string>Movements</string>
+          <string>Mouvments</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
