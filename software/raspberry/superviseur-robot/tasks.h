@@ -62,10 +62,44 @@ private:
     /**********************************************************************/
     /* Shared data                                                        */
     /**********************************************************************/
+    
     ComMonitor monitor;
     ComRobot robot;
-    int robotStarted = 0;
     int move = MESSAGE_ROBOT_STOP;
+
+    /*Added Shared Objects*/
+    Camera camera_supervisor;
+    Arena current_arena;
+    Position current_position; 
+    Img* current_image;
+
+    /*Added Shared Variables*/
+    /*
+     * positionRequired = 1 : if robot position request
+     *                    0 : if stop robot position request 
+     */
+    int positionRequired = 0;
+    /*
+     * robotStarted = 1 : if robot started
+     *                0 : if robot stopped
+     */
+    int robotStarted = 0;
+    /*
+     *cameraStarted = 1 : if camera started
+     *                0 : if camera stopped
+     */
+    int cameraStarted = 0;
+    /*
+     * areneRequired = 1 : if find arena request
+     *                 0 : if stop find arena request
+     */
+    int areneRequired = 0;
+    /*
+     * confirmArena = 1 : if arena image confirmed
+     *                0 : if arena image not confirmed
+     */
+    int confirmArena = 0;
+
     
     /**********************************************************************/
     /* Tasks                                                              */
@@ -76,6 +110,19 @@ private:
     RT_TASK th_openComRobot;
     RT_TASK th_startRobot;
     RT_TASK th_move;
+
+    /**
+     * Added tasks
+     */
+    /* Task to check the battery level */
+    RT_TASK th_batterycheck;
+    /* Task to send image to monitor */
+    RT_TASK th_sendImageToMon;
+    /* Task to send robot's position to monitor */
+    RT_TASK th_sendPositionToMon;
+    /* Task to check on the connexion with the robot */
+    RT_TASK th_checkRobotConnection;
+
     
     /**********************************************************************/
     /* Mutex                                                              */
@@ -84,6 +131,25 @@ private:
     RT_MUTEX mutex_robot;
     RT_MUTEX mutex_robotStarted;
     RT_MUTEX mutex_move;
+    /*
+     * Added mutexes
+     */
+    /* Mutex for the object camera */
+    RT_MUTEX mutex_camera;
+    /* Mutex for the camera started */
+    RT_MUTEX mutex_cameraStarted;
+    /* Mutex for the find arena request */
+    RT_MUTEX mutex_areneRequired;
+    /* Mutex for the object arena */
+    RT_MUTEX mutex_arena;
+    /* Mutex for the confirm arena image */
+    RT_MUTEX mutex_confirmArena;
+    /* Mutex for the send position request */
+    RT_MUTEX mutex_positionRequired;
+    /* Mutex for the object position */
+    RT_MUTEX mutex_current_position;
+    /* Mutex for the grabed object image*/
+    RT_MUTEX mutex_current_image;
 
     /**********************************************************************/
     /* Semaphores                                                         */
@@ -92,6 +158,13 @@ private:
     RT_SEM sem_openComRobot;
     RT_SEM sem_serverOk;
     RT_SEM sem_startRobot;
+    /*
+     * Added semaphores
+     */
+    /* Semaphore for the battery check request */
+    RT_SEM sem_checkBatt;
+    /* Semaphore for the start camera */
+    RT_SEM sem_camON;
 
     /**********************************************************************/
     /* Message queues                                                     */
@@ -132,6 +205,26 @@ private:
      */
     void MoveTask(void *arg);
     
+     /**
+     * @brief Thread handling control of the robot.
+     */
+    void ReadBattLevel(void *arg);
+    
+    /**
+     * @brief Thread handling the grabing and the sending of the image to the monitor.
+     */
+    void SendImageToMon(void *arg);
+
+    /**
+     * @brief Thread handling the calculating and the sending of the robot's position to the monitor.
+     */
+    void SendPositionToMon(void);
+
+    /**
+     * @brief Thread handling the checking of the connexion with the robot.
+     */
+    void CheckRobotConnection(void);
+
     /**********************************************************************/
     /* Queue services                                                     */
     /**********************************************************************/
@@ -148,7 +241,22 @@ private:
      * @return Message read
      */
     Message *ReadInQueue(RT_QUEUE *queue);
-
+    
+    /**********************************************************************/
+    /* Camera functions                                                   */
+    /**********************************************************************/
+    /**
+     * @brief Function to open the camera.
+     */
+    void StartCamera(void);
+    /**
+     * @brief Function to close the camera.
+     */
+    void CloseCamera(void);
+    /**
+     * @brief Function to find the arena in the current_image.
+     */
+    void StartFindArena(void); 
 };
 
 #endif // __TASKS_H__ 
